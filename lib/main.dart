@@ -66,7 +66,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         String latestVersion = data['version'];
-        String currentVersion = "1.0.0";
+        String currentVersion = "1.0.1";
 
         if (latestVersion != currentVersion) {
           if (!mounted) return;
