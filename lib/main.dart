@@ -35,29 +35,38 @@ class _WebViewScreenState extends State<WebViewScreen> {
   @override
   void initState() {
     super.initState();
-    // অ্যাপ চালু হওয়ার সাথে সাথে আপডেট চেক করবে
     checkForUpdate();
     
     controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..addJavaScriptChannel(
+        'LanguageChannel',
+        onMessageReceived: (JavaScriptMessage message) {
+          // ওয়েবসাইট থেকে ভাষা পরিবর্তনের মেসেজ এখানে আসবে
+          debugPrint("Language changed to: ${message.message}");
+        },
+      )
       ..setNavigationDelegate(
         NavigationDelegate(
           onNavigationRequest: (NavigationRequest request) {
             return NavigationDecision.navigate;
+          },
+          onPageFinished: (String url) {
+            // পেজ লোড হওয়ার পর ল্যাঙ্গুয়েজ সিঙ্ক করা
+            controller.runJavaScript("localStorage.setItem('lang', 'bn');");
           },
         ),
       )
       ..loadRequest(Uri.parse('https://global-news-zq4r.onrender.com/'));
   }
 
-  // আপডেট চেকার ফাংশন
   Future<void> checkForUpdate() async {
     try {
       final response = await http.get(Uri.parse('https://raw.githubusercontent.com/miya987-a/global-news-app/main/version.json'));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         String latestVersion = data['version'];
-        String currentVersion = "1.0.0"; // আপনার বর্তমান ভার্সন
+        String currentVersion = "1.0.0";
 
         if (latestVersion != currentVersion) {
           if (!mounted) return;
