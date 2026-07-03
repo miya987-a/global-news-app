@@ -34,21 +34,36 @@ class _WebViewScreenState extends State<WebViewScreen> {
     super.initState();
     controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      // নিচের লাইনে আপনার ওয়েবসাইটের আসল লিংকটি দিন
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onNavigationRequest: (NavigationRequest request) {
+            // এটি নিশ্চিত করবে যে যেকোনো লিংক ব্রাউজারে না গিয়ে অ্যাপের ভেতরেই ওপেন হবে
+            return NavigationDecision.navigate;
+          },
+        ),
+      )
       ..loadRequest(Uri.parse('https://global-news-zq4r.onrender.com/'));
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Global News'),
-        toolbarHeight: 0, // এটি ওপরের বার লুকিয়ে রাখবে যাতে পুরো স্ক্রিন জুড়ে ওয়েবসাইট দেখা যায়
-      ),
-      body: SafeArea(
-        child: WebViewWidget(controller: controller),
+    // WillPopScope ব্যবহার করা হয়েছে যাতে ব্যাক বাটনে চাপলে অ্যাপ বন্ধ না হয়ে আগের খবরে যায়
+    return WillPopScope(
+      onWillPop: () async {
+        if (await controller.canGoBack()) {
+          controller.goBack();
+          return false; // অ্যাপ থেকে বের না হয়ে ওয়েবসাইটের আগের পেজে যাবে
+        }
+        return true; // আর কোনো পেজ না থাকলে অ্যাপ থেকে বের হয়ে যাবে
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          toolbarHeight: 0,
+        ),
+        body: SafeArea(
+          child: WebViewWidget(controller: controller),
+        ),
       ),
     );
   }
 }
-
