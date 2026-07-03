@@ -35,7 +35,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
     controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       // নিচের লাইনে আপনার ওয়েবসাইটের আসল লিংকটি দিন
-      ..loadRequest(Uri.parse('https://আপনার-ওয়েবসাইটের-লিংক.onrender.com'));
+      ..loadRequest(Uri.parse('https://global-news-zq4r.onrender.com/'));
   }
 
   @override
