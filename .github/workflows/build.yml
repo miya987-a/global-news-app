@@ -21,6 +21,10 @@ jobs:
           cp temp_backup/main.dart lib/main.dart
           cp temp_backup/pubspec.yaml pubspec.yaml
           
+      - name: Add Internet Permission
+        run: |
+          sed -i '/<manifest xmlns:android/a \    <uses-permission android:name="android.permission.INTERNET" />' android/app/src/main/AndroidManifest.xml
+          
       - name: Install Dependencies
         run: flutter pub get
         
