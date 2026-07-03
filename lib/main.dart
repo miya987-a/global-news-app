@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 
 void main() {
   runApp(const MyApp());
@@ -32,12 +35,14 @@ class _WebViewScreenState extends State<WebViewScreen> {
   @override
   void initState() {
     super.initState();
+    // অ্যাপ চালু হওয়ার সাথে সাথে আপডেট চেক করবে
+    checkForUpdate();
+    
     controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
         NavigationDelegate(
           onNavigationRequest: (NavigationRequest request) {
-            // এটি নিশ্চিত করবে যে যেকোনো লিংক ব্রাউজারে না গিয়ে অ্যাপের ভেতরেই ওপেন হবে
             return NavigationDecision.navigate;
           },
         ),
@@ -45,20 +50,52 @@ class _WebViewScreenState extends State<WebViewScreen> {
       ..loadRequest(Uri.parse('https://global-news-zq4r.onrender.com/'));
   }
 
+  // আপডেট চেকার ফাংশন
+  Future<void> checkForUpdate() async {
+    try {
+      final response = await http.get(Uri.parse('https://raw.githubusercontent.com/miya987-a/global-news-app/main/version.json'));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        String latestVersion = data['version'];
+        String currentVersion = "1.0.0"; // আপনার বর্তমান ভার্সন
+
+        if (latestVersion != currentVersion) {
+          if (!mounted) return;
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => AlertDialog(
+              title: Text("নতুন আপডেট এসেছে!"),
+              content: Text("অ্যাপটি লেটেস্ট ভার্সনে আপডেট করতে ডাউনলোড করুন।"),
+              actions: [
+                TextButton(
+                  onPressed: () => launchUrl(Uri.parse(data['apk_url']), mode: LaunchMode.externalApplication),
+                  child: Text("আপডেট করুন"),
+                ),
+              ],
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint("Update check failed: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // WillPopScope ব্যবহার করা হয়েছে যাতে ব্যাক বাটনে চাপলে অ্যাপ বন্ধ না হয়ে আগের খবরে যায়
     return WillPopScope(
       onWillPop: () async {
         if (await controller.canGoBack()) {
           controller.goBack();
-          return false; // অ্যাপ থেকে বের না হয়ে ওয়েবসাইটের আগের পেজে যাবে
+          return false;
         }
-        return true; // আর কোনো পেজ না থাকলে অ্যাপ থেকে বের হয়ে যাবে
+        return true;
       },
       child: Scaffold(
-        appBar: AppBar(
-          toolbarHeight: 0,
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(0),
+          child: AppBar(),
         ),
         body: SafeArea(
           child: WebViewWidget(controller: controller),
