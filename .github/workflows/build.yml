@@ -26,9 +26,21 @@ jobs:
           sed -i '/<manifest xmlns:android/a \    <uses-permission android:name="android.permission.INTERNET" />' android/app/src/main/AndroidManifest.xml
           
       - name: Install Dependencies
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/key.jks
+
         run: flutter pub get
         
       - name: Build APK
+      - name: Build APK with Signing
+        run: |
+          flutter build apk --release \
+            --split-per-abi \
+            --dart-define=KEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }} \
+            --dart-define=KEY_ALIAS=${{ secrets.KEY_ALIAS }} \
+            --dart-define=KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}
+
         run: flutter build apk --release
         
       - name: Upload APK
