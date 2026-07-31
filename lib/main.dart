@@ -49,7 +49,9 @@ class _WebViewScreenState extends State<WebViewScreen> {
       ..setNavigationDelegate(
         NavigationDelegate(
           onNavigationRequest: (NavigationRequest request) {
-            return NavigationDecision.navigate;
+            // লিংকে ক্লিক করলে সেটি বাইরের ব্রাউজারে না গিয়ে অ্যাপের ভেতরেই লোড হবে
+            controller.loadRequest(Uri.parse(request.url));
+            return NavigationDecision.prevent;
           },
           onPageFinished: (String url) {
             // পেজ লোড হওয়ার পর ল্যাঙ্গুয়েজ সিঙ্ক করা
